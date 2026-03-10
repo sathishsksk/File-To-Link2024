@@ -1,0 +1,27 @@
+name: ⚡ Keep Bot Alive
+
+on:
+  schedule:
+    # Runs every 5 minutes — keeps Koyeb from sleeping
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  ping:
+    name: Ping Bot Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🏓 Ping Koyeb App
+        run: |
+          echo "Pinging bot at: ${{ secrets.KOYEB_APP_URL }}"
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 30 "${{ secrets.KOYEB_APP_URL }}")
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "✅ Bot is ALIVE! Status: $STATUS"
+          else
+            echo "⚠️ Bot returned status: $STATUS (may be starting up)"
+          fi
+
+      - name: 📊 Log ping time
+        run: echo "Pinged at $(date '+%Y-%m-%d %H:%M:%S UTC')"
