@@ -5,21 +5,27 @@
 #  Does NOT change any main bot code.
 # ──────────────────────────────────────────────
 
-FROM python:3.11-slim
+FROM python:3.10-slim
 
-# System deps (ffmpeg for media, curl for health probe)
+# System deps: build tools needed for aiohttp/cryptography + ffmpeg + curl
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
     gcc \
+    g++ \
+    python3-dev \
+    libffi-dev \
+    libssl-dev \
+    make \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install Python deps first (layer cache)
+# Upgrade pip first, then install deps (aiohttp is already in requirements.txt)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir psutil aiohttp
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir psutil
 
 # Copy source
 COPY . .
